@@ -13,6 +13,12 @@
   "jupyter.notebookFileRoot": "${workspaceFolder}",
   "terminal.integrated.enableMultiLinePasteWarning": false,
   "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
     "venv": true,
     "lightning-annotations.json": true,
     ".lightning-app-sync": true,
@@ -57,10 +63,13 @@
     ".vscode-server/**": true,
     ".vscode-server-insiders/**": true,
     ".tmplaigit": true,
-    ".viminfo": true
+    ".viminfo": true,
+    "**/.rmv/catalog/**": true,
+    "*/_*": false
   },
   "files.associations": {
-    "*.studiorc": "shellscript"
+    "*.studiorc": "shellscript",
+    "**/.rmv/config/*.json": "jsonc"
   },
   "jupyter.kernels.excludePythonEnvironments": [
     "/commands/python3",
@@ -71,5 +80,8 @@
     "/usr/bin/python3",
     "/bin/python3.8",
     "/usr/bin/python3.8"
-  ]
+  ],
+  "[rocket-mvbasic]": {
+    "editor.codeLens": false
+  }
 }
