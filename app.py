@@ -43,6 +43,8 @@ def create_tables():
 # Initialize the database
 create_tables()
 
+twilio_response = MessagingResponse()
+
 # def generate_user_id():
 #     # Generate a user ID prefixed with the current year and a random 3-digit number
 #     current_year = str(datetime.datetime.now().year)
@@ -78,7 +80,7 @@ def create_user(phone_number, username, city, country):
         """, (username, phone_number, user_id, city, country))
         db.commit()
 
-        return f"Welcome, {username}! You are now registered. How can I assist you today?"
+        twilio_response.message("You are now registered!, You can now continue")
     else:
         return f"Hi {username}, it seems you are already registered. How can I assist you today?"
 
@@ -118,6 +120,8 @@ def bot():
         # Get the whole message that is send by the user.
         incoming_msg = request.values.get('Body', '')
 
+        twilio_response = MessagingResponse()
+
         # Check if user exists
         db = get_db()
         cursor = db.cursor()
@@ -126,12 +130,24 @@ def bot():
 
         # Register user if not existing
         if not existing_user:
-            # # Extract username from message (assuming username is in the first message)
-            # username = incoming_msg.split()[0] if incoming_msg.split() else ""
-            # welcome_message = create_user(user_id, username)
-            # update_conversation(user_id, welcome_message)
-            # Prompt user for details if not registered
-            update_conversation(user_id, "Welcome! To get started, please enter your username, city, and country (separated by commas):")
+            twilio_response.message("You are not registered! To get started, please enter your username, city, and country (separated by commas):")
+
+            if "," in incoming_msg:
+                try:
+                    details = incoming_msg.split(",")
+                    username = details[0].strip()
+                    city = details[1].strip()
+                    country = details[2].strip()
+
+                    # Register user with extracted details
+                    create_user(user_id, username, city, country)
+                    
+                    # update_conversation(user_id, welcome_message)
+                except IndexError:  # Handle cases with missing details
+                    twilio_response.message("Invalid format. Please enter username, city, and country separated by commas (e.g., John Doe, Harare, Zimbabwe).")
+            
+            # update_conversation(user_id, "Welcome! To get started, please enter your username, city, and country (separated by commas):")
+            
         else:
             username = existing_user[1]  # Assuming username is the second column in the table
 
