@@ -120,8 +120,6 @@ def bot():
         # Get the whole message that is send by the user.
         incoming_msg = request.values.get('Body', '')
 
-        twilio_response = MessagingResponse()
-
         # Check if user exists
         db = get_db()
         cursor = db.cursor()
@@ -130,7 +128,10 @@ def bot():
 
         # Register user if not existing
         if not existing_user:
-            twilio_response.message("You are not registered! To get started, please enter your username, city, and country (separated by commas):")
+            resp.message("You are not registered! To get started, please enter your username, city, and country (separated by commas):")
+            resp = MessagingResponse()
+            msg = resp.message()
+            msg.body(clean_response)
 
             if "," in incoming_msg:
                 try:
@@ -138,13 +139,28 @@ def bot():
                     username = details[0].strip()
                     city = details[1].strip()
                     country = details[2].strip()
+                    phone_number = user_id
+                    conn = get_db()
+                    cursor = conn.cursor()
 
-                    # Register user with extracted details
-                    create_user(user_id, username, city, country)
+                    
+                    try:
+                        cursor.execute("INSERT INTO users (username, phone_number, user_id, city, country) VALUES (?, ?, ?, ?, ?)",
+                                    (username, phone_number, user_id, city, country))
+                        db.commit()
+                        resp.message("Registration successful! Your user ID is: {}".format(user_id))
+                    except sqlite3.IntegrityError:
+                        resp.message("Phone number already registered.")
+                    finally:
+                        lastInput = ''
+                        resp.message("You are not registered!")
+                    
+                    return str(resp)
                     
                     # update_conversation(user_id, welcome_message)
                 except IndexError:  # Handle cases with missing details
-                    twilio_response.message("Invalid format. Please enter username, city, and country separated by commas (e.g., John Doe, Harare, Zimbabwe).")
+                    resp.message("Invalid format. Please enter username, city, and country separated by commas (e.g., John Doe, Harare, Zimbabwe).")
+                    return str(resp)
             
             # update_conversation(user_id, "Welcome! To get started, please enter your username, city, and country (separated by commas):")
             
